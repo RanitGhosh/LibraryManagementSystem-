@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Library Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --color-primary: #2563eb;
+      --color-gray-dark: #374151;
+      --color-gray-medium: #6b7280;
+      --color-bg-light: #ffffff;
+      --border-radius: 0.75rem;
+      --shadow-soft: 0 4px 12px rgb(0 0 0 / 0.05);
+      --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--color-bg-light);
+      color: var(--color-gray-dark);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+    input, select {
+      border-radius: var(--border-radius);
+      border: 1px solid #d1d5db; /* Tailwind gray-300 */
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      transition: border-color var(--transition-base);
+      width: 100%;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgb(37 99 235 / 0.3);
+    }
+    .card {
+      background: var(--color-bg-light);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-soft);
+      padding: 1.25rem;
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.1);
+    }
+    .nav-link-active {
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    /* Scrollbar for book catalog */
+    .scrollbar-thin::-webkit-scrollbar {
+      height: 6px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background-color: var(--color-primary);
+      border-radius: 10px;
+    }
+    /* Responsive container with max-width */
+    .container {
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+  <!-- Sticky navigation -->
+  <header class="sticky top-0 bg-white shadow-sm z-50">
+    <div class="container flex items-center justify-between py-4 px-6">
+      <a href="#" class="text-2xl font-semibold text-gray-800 select-none">𝙇𝙄𝘽𝙍𝘼𝙔𝙨𝙮𝙨</a>
+      <nav class="space-x-6 hidden md:flex text-gray-600 font-medium">
+        <button class="nav-link-active" data-tab-target="dashboard" aria-current="page">Dashboard</button>
+        <button data-tab-target="profile">Profile</button>
+        <button data-tab-target="admin">Admin</button>
+      </nav>
+      <button id="mobileMenuToggle" class="md:hidden focus:outline-none" aria-label="Toggle menu">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+          viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <nav id="mobileMenu" class="hidden md:hidden bg-white px-6 pb-4 space-y-3">
+      <button class="nav-link-active w-full text-left" data-tab-target="dashboard">Dashboard</button>
+      <button class="w-full text-left" data-tab-target="profile">Profile</button>
+      <button class="w-full text-left" data-tab-target="admin">Admin</button>
+    </nav>
+  </header>
+
+  <main class="flex-grow container px-6 py-10">
+    <!-- Login/Register Interface -->
+    <section id="loginSection" class="max-w-md mx-auto">
+      <h1 class="text-4xl font-semibold mb-6 text-center text-gray-800">𝕎𝕖𝕝𝕔𝕠𝕞𝕖 𝕥𝕠 𝕃𝕚𝕓𝕣𝕒𝕣𝕪𝕊𝕪
+</h1>
+      <form id="loginForm" class="space-y-6 bg-white p-8 rounded-lg shadow-soft">
+        <div>
+          <label for="username" class="block mb-2 font-semibold text-gray-700">Username</label>
+          <input type="text" id="username" required placeholder="Your username" />
+        </div>
+        <div>
+          <label for="password" class="block mb-2 font-semibold text-gray-700">Password</label>
+          <input type="password" id="password" required placeholder="Your password" />
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+          Login
+        </button>
+      </form>
+      <p class="mt-4 text-center text-gray-600">or <button id="showRegister" class="underline text-blue-600 hover:text-blue-800 focus:outline-none">Register here</button></p>
+    </section>
+
+    <section id="registerSection" class="max-w-md mx-auto hidden">
+      <h1 class="text-4xl font-semibold mb-6 text-center text-gray-800">Create an Account</h1>
+      <form id="registerForm" class="space-y-6 bg-white p-8 rounded-lg shadow-soft">
+        <div>
+          <label for="regUsername" class="block mb-2 font-semibold text-gray-700">Username</label>
+          <input type="text" id="regUsername" required placeholder="Choose a username" />
+        </div>
+        <div>
+          <label for="regEmail" class="block mb-2 font-semibold text-gray-700">Email</label>
+          <input type="email" id="regEmail" required placeholder="Your email address" />
+        </div>
+        <div>
+          <label for="regPassword" class="block mb-2 font-semibold text-gray-700">Password</label>
+          <input type="password" id="regPassword" required placeholder="Create a password" />
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+          Register
+        </button>
+      </form>
+      <p class="mt-4 text-center text-gray-600">Already have an account? <button id="showLogin" class="underline text-blue-600 hover:text-blue-800 focus:outline-none">Login here</button></p>
+    </section>
+
+    <!-- Main UI Tabs container (hidden initially) -->
+    <section id="appUI" class="hidden">
+      <div class="flex flex-col md:flex-row md:space-x-8">
+        <!-- Sidebar for smaller screens -->
+        <nav class="mb-8 md:mb-0 md:w-64 flex space-x-4 md:flex-col md:space-x-0 md:space-y-6 border-b md:border-b-0 md:border-r border-gray-200 pb-4 md:pb-0">
+          <button class="tab-btn nav-link-active px-4 py-2 text-left rounded-lg w-full" data-tab="dashboard">Dashboard</button>
+          <button class="tab-btn px-4 py-2 text-left rounded-lg w-full" data-tab="profile">Profile</button>
+          <button class="tab-btn px-4 py-2 text-left rounded-lg w-full" data-tab="admin">Admin</button>
+          <button id="logoutBtn" class="mt-auto px-4 py-2 text-left rounded-lg w-full text-red-600 hover:bg-red-50 transition duration-300 font-semibold">Logout</button>
+        </nav>
+
+        <div class="flex-grow">
+          <!-- Dashboard -->
+          <div id="tabDashboard" class="tab-panel space-y-8">
+            <header class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+              <h2 class="text-3xl font-semibold text-gray-800">Book Catalog</h2>
+              <form id="searchForm" class="w-full md:w-80">
+                <label for="searchInput" class="sr-only">Search Books</label>
+                <input type="text" id="searchInput" placeholder="Search books..." class="w-full rounded-lg border border-gray-300 p-3 text-gray-700 focus:border-blue-600 focus:ring-1 focus:ring-blue-600" />
+              </form>
+            </header>
+
+            <div id="booksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 scrollbar-thin overflow-y-auto max-h-[60vh] pr-2">
+              <!-- Book cards inserted by JS -->
+            </div>
+
+            <!-- Borrow/Return form modal -->
+            <div id="borrowModal" class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+              <div class="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+                <button id="borrowModalClose" aria-label="Close" class="absolute top-4 right-4 text-gray-600 hover:text-gray-900 focus:outline-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <h3 id="borrowModalTitle" class="text-xl font-semibold mb-4 text-gray-800">Borrow Book</h3>
+                <form id="borrowForm" class="space-y-4">
+                  <div>
+                    <label for="bookNameInput" class="block font-semibold mb-1 text-gray-700">Book Name</label>
+                    <input type="text" id="bookNameInput" readonly class="bg-gray-100" />
+                  </div>
+                  <div>
+                    <label for="issueDateInput" class="block font-semibold mb-1 text-gray-700">Issue Date</label>
+                    <input type="date" id="issueDateInput" required />
+                  </div>
+                  <div>
+                    <label for="submitDateInput" class="block font-semibold mb-1 text-gray-700">Submit Date</label>
+                    <input type="date" id="submitDateInput" required />
+                  </div>
+                  <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-300">Submit</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile -->
+          <div id="tabProfile" class="tab-panel hidden max-w-xl space-y-8">
+            <h2 class="text-3xl font-semibold text-gray-800">User Profile</h2>
+            <div class="card">
+              <p><strong>Username:</strong> <span id="userProfileName">User123</span></p>
+              <p><strong>Email:</strong> <span id="userProfileEmail">user@example.com</span></p>
+              <p><strong>Books Borrowed:</strong> <span id="userBooksCount">0</span></p>
+            </div>
+          </div>
+
+          <!-- Admin Panel -->
+          <div id="tabAdmin" class="tab-panel hidden max-w-xl space-y-8">
+            <h2 class="text-3xl font-semibold text-gray-800">Admin Panel - Book Management</h2>
+            <form id="adminAddBookForm" class="card space-y-4">
+              <div>
+                <label for="adminBookName" class="block mb-2 font-semibold text-gray-700">Book Name</label>
+                <input type="text" id="adminBookName" required placeholder="Enter book name" />
+              </div>
+              <div>
+                <label for="adminIssueDate" class="block mb-2 font-semibold text-gray-700">Issue Date</label>
+                <input type="date" id="adminIssueDate" required />
+              </div>
+              <div>
+                <label for="adminSubmitDate" class="block mb-2 font-semibold text-gray-700">Submit Date</label>
+                <input type="date" id="adminSubmitDate" required />
+              </div>
+              <button type="submit" class="bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition duration-300 w-full">Add Book</button>
+            </form>
+            <div id="adminBooksList" class="space-y-4 mt-6 max-h-[40vh] overflow-y-auto">
+              <!-- Existing books listed here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <!-- <footer class="bg-gray-50 text-center py-6 mt-12 text-sm text-gray-500 select-none">
+      &copy; 2024 LibrarySys — All rights reserved -->
+  </footer> 
+
+
+  <script>
+    // Data store simulation for user, books, borrow status
+    const user = {
+      username: 'User123',
+      email: 'user@example.com',
+      borrowedBooks: []
+    };
+
+    let books = [
+      { id: 1, name: "The Great Gatsby", issueDate: "2024-01-10", submitDate: "2024-02-10" },
+      { id: 2, name: "1984", issueDate: "2024-01-15", submitDate: "2024-02-15" },
+      { id: 3, name: "To Kill a Mockingbird", issueDate: "2024-01-20", submitDate: "2024-02-20" },
+      { id: 4, name: "Pride and Prejudice", issueDate: "2024-01-25", submitDate: "2024-02-25" },
+      { id: 5, name: "The Hobbit", issueDate: "2024-02-01", submitDate: "2024-03-01" },
+      //{ id: 5, name: "xyz", issueDate: "2025-06-11", submitDate: "2025-07-11" },
+      //{ id: 6, name: "Java", issueDate: "2025-06-11", submitDate: "2025-07-11" },
+      //{ id: 7, name: "RanitGhosh", issueDate: "2025-06-11", submitDate: "2025-07-11" } 
+    ];
+
+    // DOM elements
+    const loginSection = document.getElementById('loginSection');
+    const registerSection = document.getElementById('registerSection');
+    const appUI = document.getElementById('appUI');
+    const showRegisterBtn = document.getElementById('showRegister');
+    const showLoginBtn = document.getElementById('showLogin');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const navButtons = document.querySelectorAll('nav button[data-tab-target], .tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    // Dashboard elements
+    const booksContainer = document.getElementById('booksContainer');
+    const searchInput = document.getElementById('searchInput');
+
+    // Borrow modal elements
+    const borrowModal = document.getElementById('borrowModal');
+    const borrowModalClose = document.getElementById('borrowModalClose');
+    const borrowModalTitle = document.getElementById('borrowModalTitle');
+    const borrowForm = document.getElementById('borrowForm');
+    const bookNameInput = document.getElementById('bookNameInput');
+    const issueDateInput = document.getElementById('issueDateInput');
+    const submitDateInput = document.getElementById('submitDateInput');
+
+    // Profile
+    const userProfileName = document.getElementById('userProfileName');
+    const userProfileEmail = document.getElementById('userProfileEmail');
+    const userBooksCount = document.getElementById('userBooksCount');
+
+    // Admin elements
+    const adminAddBookForm = document.getElementById('adminAddBookForm');
+    const adminBookNameInput = document.getElementById('adminBookName');
+    const adminIssueDateInput = document.getElementById('adminIssueDate');
+    const adminSubmitDateInput = document.getElementById('adminSubmitDate');
+    const adminBooksList = document.getElementById('adminBooksList');
+
+    let currentUser = null; // To track login state
+    let currentTab = 'dashboard';
+    let editingBookId = null; // To track if admin editing
+
+    // Helper: create book card
+    function createBookCard(book) {
+      const isBorrowed = user.borrowedBooks.some(b => b.id === book.id);
+      const card = document.createElement('div');
+      card.className = 'card flex flex-col justify-between';
+
+      card.innerHTML = `
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">${book.name}</h3>
+          <p class="text-gray-600 text-sm mt-1">Issue Date: ${book.issueDate}</p>
+          <p class="text-gray-600 text-sm">Submit Date: ${book.submitDate}</p>
+        </div>
+        <div class="mt-4">
+          ${isBorrowed
+            ? '<button disabled class="w-full bg-gray-300 text-gray-600 font-semibold py-2 rounded-lg cursor-not-allowed">Borrowed</button>'
+            : `<button class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition duration-300 borrow-btn" data-id="${book.id}">Borrow</button>`
+          }
+        </div>
+      `;
+      return card;
+    }
+
+    // Render books in dashboard
+    function renderBooks(filter = '') {
+      booksContainer.innerHTML = '';
+      const filteredBooks = books.filter(book =>
+        book.name.toLowerCase().includes(filter.toLowerCase())
+      );
+      if (filteredBooks.length === 0) {
+        booksContainer.innerHTML = '<p class="text-gray-600 col-span-full">No books found.</p>';
+        return;
+      }
+      filteredBooks.forEach(book => {
+        const card = createBookCard(book);
+        booksContainer.appendChild(card);
+      });
+
+      // Add borrow buttons handler
+      const borrowButtons = booksContainer.querySelectorAll('.borrow-btn');
+      borrowButtons.forEach(btn => btn.addEventListener('click', handleBorrowClick));
+    }
+
+    // Handle borrow button click
+    function handleBorrowClick(e) {
+      const bookId = parseInt(e.target.dataset.id);
+      const book = books.find(b => b.id === bookId);
+      if (!book) return;
+      bookNameInput.value = book.name;
+      issueDateInput.valueAsDate = new Date();
+      submitDateInput.valueAsDate = new Date(new Date().setDate(new Date().getDate() + 14));
+      borrowModalTitle.textContent = `Borrow "${book.name}"`;
+      borrowModal.classList.remove('opacity-0', 'pointer-events-none');
+      borrowModal.classList.add('opacity-100');
+      editingBookId = bookId;
+    }
+
+    // Close borrow modal
+    function closeBorrowModal() {
+      borrowModal.classList.add('opacity-0', 'pointer-events-none');
+      borrowModal.classList.remove('opacity-100');
+      borrowForm.reset();
+      editingBookId = null;
+    }
+
+    // Handle borrow form submit
+    borrowForm.addEventListener('submit', function(ev) {
+      ev.preventDefault();
+      if (editingBookId === null) return;
+      // Add book to user's borrowed books list
+      const book = books.find(b => b.id === editingBookId);
+      if (!book) return;
+      user.borrowedBooks.push({
+        id: book.id,
+        name: book.name,
+        issueDate: issueDateInput.value,
+        submitDate: submitDateInput.value
+      });
+      updateProfileBooksCount();
+      // Disable borrow button on dashboard for this book
+      renderBooks(searchInput.value);
+      closeBorrowModal();
+      alert(`You have borrowed "${book.name}"`);
+    });
+
+    borrowModalClose.addEventListener('click', closeBorrowModal);
+    borrowModal.addEventListener('click', (ev) => {
+      if (ev.target === borrowModal) closeBorrowModal();
+    });
+
+    // Update profile books count
+    function updateProfileBooksCount() {
+      userBooksCount.textContent = user.borrowedBooks.length;
+    }
+
+    // Navigation tab switching
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const target = btn.dataset.tabTarget || btn.dataset.tab;
+        if (!target) return;
+        showTab(target);
+        // Update navigation active states for both desktop and mobile nav buttons
+        navButtons.forEach(b => b.classList.remove('nav-link-active'));
+        navButtons.forEach(b => {
+          if ((b.dataset.tabTarget === target) || (b.dataset.tab === target)) {
+            b.classList.add('nav-link-active');
+          }
+        });
+        // Hide mobile menu on selection (if open)
+        if (mobileMenu.classList.contains('block')) {
+          mobileMenu.classList.remove('block');
+          mobileMenu.classList.add('hidden');
+        }
+      });
+    });
+
+    function showTab(tabName) {
+      tabPanels.forEach(panel => {
+        if (panel.id === 'tab' + capitalize(tabName)) {
+          panel.classList.remove('hidden');
+        } else {
+          panel.classList.add('hidden');
+        }
+      });
+      currentTab = tabName;
+    }
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // Search books
+    searchInput.addEventListener('input', () => {
+      renderBooks(searchInput.value);
+    });
+
+    // Admin Panel: render books list with delete buttons
+    function renderAdminBooks() {
+      adminBooksList.innerHTML = '';
+      if (books.length === 0) {
+        adminBooksList.innerHTML = '<p class="text-gray-600">No books in catalog.</p>';
+        return;
+      }
+      books.forEach(book => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between bg-white p-4 rounded-lg shadow-soft';
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold text-gray-800">${book.name}</p>
+            <p class="text-sm text-gray-600">Issue Date: ${book.issueDate} | Submit Date: ${book.submitDate}</p>
+          </div>
+          <button class="text-red-600 font-semibold hover:text-red-800 admin-delete-btn" data-id="${book.id}" aria-label="Delete book ${book.name}">
+            &times;
+          </button>
+        `;
+        adminBooksList.appendChild(div);
+      });
+
+      // Add delete handlers
+      const delBtns = adminBooksList.querySelectorAll('.admin-delete-btn');
+      delBtns.forEach(btn => btn.addEventListener('click', handleAdminDelete));
+    }
+
+    function handleAdminDelete(ev) {
+      const idToDelete = parseInt(ev.target.dataset.id);
+      books = books.filter(b => b.id !== idToDelete);
+      // Also remove from borrowed books
+      user.borrowedBooks = user.borrowedBooks.filter(b => b.id !== idToDelete);
+      renderAdminBooks();
+      renderBooks(searchInput.value);
+      updateProfileBooksCount();
+    }
+
+    // Admin Panel: add book form submit
+    adminAddBookForm.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const name = adminBookNameInput.value.trim();
+      const issueDate = adminIssueDateInput.value;
+      const submitDate = adminSubmitDateInput.value;
+      if (!name || !issueDate || !submitDate) {
+        alert('Please fill all fields');
+        return;
+      }
+      const newBook = {
+        id: books.length ? books[books.length - 1].id + 1 : 1,
+        name,
+        issueDate,
+        submitDate
+      };
+      books.push(newBook);
+      renderAdminBooks();
+      renderBooks(searchInput.value);
+      adminAddBookForm.reset();
+      alert(`Book "${name}" added to catalog.`);
+    });
+
+    // Login form submit (mock)
+    loginForm.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) {
+        alert('Please enter username and password');
+        return;
+      }
+      // For demo, accept any non-empty user
+      currentUser = { username, email: username + '@example.com' };
+      user.username = currentUser.username;
+      user.email = currentUser.email;
+      showAppUI();
+    });
+
+    // Register form submit (mock)
+    registerForm.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+      if (!username || !email || !password) {
+        alert('Please fill all fields');
+        return;
+      }
+      // Basic email check for demo
+      if (!email.includes('@')) {
+        alert('Please enter a valid email');
+        return;
+      }
+      currentUser = { username, email };
+      user.username = username;
+      user.email = email;
+      showAppUI();
+    });
+
+    // Show Register / Login toggle
+    showRegisterBtn.addEventListener('click', () => {
+      loginSection.classList.add('hidden');
+      registerSection.classList.remove('hidden');
+    });
+    showLoginBtn.addEventListener('click', () => {
+      registerSection.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+    });
+
+    // Show main app UI after login/register
+    function showAppUI() {
+      loginSection.classList.add('hidden');
+      registerSection.classList.add('hidden');
+      appUI.classList.remove('hidden');
+      // Initialize UI tabs and profile
+      showTab('dashboard');
+      updateProfileUI();
+      renderBooks();
+      renderAdminBooks();
+    }
+
+    // Update profile info UI
+    function updateProfileUI() {
+      userProfileName.textContent = user.username;
+      userProfileEmail.textContent = user.email;
+      updateProfileBooksCount();
+    }
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      currentUser = null;
+      user.borrowedBooks.length = 0;
+      registerSection.classList.add('hidden');
+      appUI.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      loginForm.reset();
+      registerForm.reset();
+    });
+
+    // Mobile menu toggle
+    mobileMenuToggle.addEventListener('click', () => {
+      if (mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+        mobileMenu.classList.add('block');
+      } else {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('block');
+      }
+    });
+
+    // On page load, focus username on login
+    window.addEventListener('load', () => {
+      document.getElementById('username').focus();
+    });
+
+    // Initial render
+    renderBooks();
+    renderAdminBooks();
+  </script>
+
+  <!-- AI generated photo section (Dashboard) below the catalog -->
+  <!-- <section class="container px-6 pb-12 mt-12">
+    <h2 class="text-3xl font-semibold text-gray-800 mb-6">Featured AI Generated Library Art</h2> -->
+
+    <footer class="bg-gray-50 text-center py-6 mt-12 text-sm text-gray-500 select-none">
+    <div class="container space-y-2">
+      <p>&copy; 2025 LibrarySys — All rights reserved</p>
+      <p>Phone: <a href="tel:+1234567890" class="hover:underline focus:underline">+91  85093-47671</a></p>
+      <p>Email: <a href="mailto:info@librarysys.com" class="hover:underline focus:underline">info@librarysys.com</a></p>
+      <div class="social-icons flex justify-center space-x-4 mt-2" role="list" aria-label="Social media links">
+        <a href="https://instagram.com/yourprofile" target="_blank" rel="noopener noreferrer" aria-label="Instagram" role="listitem" tabindex="0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+            class="w-6 h-6" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <path d="M16 11.37a4 4 0 1 1-4.73-4.73 4 4 0 0 1 4.73 4.73z"/>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          </svg>
+        </a>
+        <a href="https://twitter.com/yourprofile" target="_blank" rel="noopener noreferrer" aria-label="Twitter" role="listitem" tabindex="0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+            class="w-6 h-6" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.4 1c-.88.52-1.86.9-2.91 1.1A4.48 4.48 0 0 0 16.62 0c-2.62 0-4.69 2.13-4.69 4.75 0 .37.04.73.12 1.08-3.9-.2-7.35-2.13-9.65-5.07a4.764 4.764 0 0 0-.63 2.38c0 1.64.85 3.1 2.15 3.95A4.46 4.46 0 0 1 3 6.8v.06c0 2.3 1.63 4.22 3.79 4.65a4.52 4.52 0 0 1-2.12.08c.6 1.9 2.34 3.28 4.41 3.32A9.01 9.01 0 0 1 0 19.54a12.67 12.67 0 0 0 6.92 2.05c8.3 0 12.85-6.89 12.85-12.85 0-.2 0-.4-.02-.6A9.22 9.22 0 0 0 23 3z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+
+    <figure class="max-w-4xl mx-auto rounded-lg overflow-hidden shadow-soft">
+      <img 
+        src="Book.jpg" 
+        alt="AI generated artistic representation of library books and knowledge" 
+        class="w-full h-auto object-cover"
+        loading="lazy"
+      />
+      <figcaption class="p-4 text-center text-gray-500 text-sm">An AI inspired artistic view of books and knowledge.</figcaption>
+    </figure>
+  </section>
+</body>
+</html>
+
